@@ -1,4 +1,0 @@
-Mahjong-phaser
-==============
-
-Mahjong-phaser
