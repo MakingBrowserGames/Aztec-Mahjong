@@ -27,6 +27,7 @@
         var tileHeight = 88;
         var playableTile = 18;
         var nbTileRow = 6;
+        var nbTileToMiddle = parseInt(nbTileRow / 2);
 
         var tilesGroup;
         var aPosit = new Array();
@@ -42,23 +43,33 @@
             function create() {
 
                 tilesGroup = game.add.group();
-                left = 0;
-                j = 0;
-                for (var i = 0; i < playableTile; i++) {
-                    var frame = parseInt(Math.random() * nbTile);
-                    var tile = tilesGroup.create(aPositSuffle[j].x, aPositSuffle[j].y, 'tiles');
-                    tile.frame = frame;
-                    tile.id = j;
-                    tile.posit = aPositSuffle[j].i;
-                    j++;
+                var TileByFloor = playableTile;
+                for (var z = 0; z < parseInt(nbTileToMiddle); z++) {
+                    if (z > 0) {
 
-                    var tile = tilesGroup.create(aPositSuffle[j].x, aPositSuffle[j].y, 'tiles');
-                    tile.frame = frame;
-                    tile.id = j;
-                    tile.posit = aPositSuffle[j].i;
-                    j++;
+                        TileByFloor = Math.ceil(nbTileRow - ((nbTileRow / 3) * z));
+                        if (TileByFloor > 2) {
+
+                            TileByFloor = TileByFloor * 2;
+                        }
+                    }
+                    j = 0;
+                    for (var i = 0; i < TileByFloor; i++) {
+                        var frame = parseInt(Math.random() * nbTile);
+                        var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
+                        tile.floor = z;
+                        tile.frame = frame;
+                        tile.id = j;
+                        tile.posit = aPositSuffle[z][j].i;
+                        j++;
+                        var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
+                        tile.floor = z;
+                        tile.frame = frame;
+                        tile.id = j;
+                        tile.posit = aPositSuffle[z][j].i;
+                        j++;
+                    }
                 }
-
                 tilesGroup.setAll('inputEnabled', true);
                 tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
             }
@@ -74,8 +85,6 @@
 
             function matching(tile) {
 
-                console.log(tile);
-
                 if (canSelect(tile)) {
 
                     tile.frame += nbTile;
@@ -84,8 +93,8 @@
                         if ((lastTile.frame == tile.frame) && (lastTile.id != tile.id)) {
                             lastTile.destroy();
                             tile.destroy();
-                            aPosit[tile.posit].destroy = 1;
-                            aPosit[lastTile.posit].destroy = 1;
+                            aPosit[tile.floor][tile.posit].destroy = 1;
+                            aPosit[lastTile.floor][lastTile.posit].destroy = 1;
                         }
                         lastTile.frame -= nbTile;
                         tile.frame -= nbTile;
@@ -97,7 +106,7 @@
             }
 
             function canSelect(tile) {
-
+                floor = tile.floor;
                 posit = tile.id;
                 index = tile.posit;
 
@@ -107,22 +116,20 @@
                 haveTileLeft = false;
                 haveTileRight = false;
 
-                if (aPosit[posit].haveTileLeft) {
-                    haveTileLeft = aPosit[posit].haveTileLeft;
+                if (aPosit[floor][posit].haveTileLeft) {
+                    haveTileLeft = aPosit[floor][posit].haveTileLeft;
                 }
 
-                if (aPosit[posit].haveTileRight) {
-                    haveTileRight = aPosit[posit].haveTileRight;
+                if (aPosit[floor][posit].haveTileRight) {
+                    haveTileRight = aPosit[floor][posit].haveTileRight;
                 }
 
 
                 var bRet = true;
                 if (!haveTileLeft || !haveTileRight) {
                     bRet = true;
-                    console.log('base')
                 } else {
-                    console.log('destroy')
-                    if ((aPosit[leftTile].destroy === 1) || (aPosit[rightTile].destroy === 1)) {
+                    if ((aPosit[floor][leftTile].destroy === 1) || (aPosit[floor][rightTile].destroy === 1)) {
                         bRet = true;
                     } else {
                         bRet = false;
@@ -133,21 +140,27 @@
             }
 
             function shufflingTiles() {
-
+                var aPositFloor = Array();
                 var middle_left = width / 2;
                 var middle_top = height / 2;
-                var nbTileToMiddle = parseInt(nbTileRow / 2);
+                var base_x = middle_left - (nbTileToMiddle * tileWidth);
+                var base_y = middle_top - (nbTileToMiddle * tileHeight);
                 var x = middle_left - (nbTileToMiddle * tileWidth);
                 var y = middle_top - (nbTileToMiddle * tileHeight);
                 var nbElemRow = 0;
                 var haveTileLeft;
                 var haveTileRight;
-                for (var i = 0; i < playableTile * 2; i++) {
+                var TileByFloor = playableTile;
+                var floor = 0;
+                /**
+                 * Ground
+                 */
+                for (var i = 0; i < TileByFloor * 2; i++) {
 
 
-                    haveTileLeft = ((i % 6) === 0) ? false : true;
-                    haveTileRight = (((i + 1) % 6) == 0) ? false : true;
-                    aPosit[i] = {i: i, x: parseInt(parseFloat(x + (nbElemRow * tileWidth))), y: parseInt(y), destroy: 0, haveTileLeft: haveTileLeft, haveTileRight: haveTileRight};
+                    haveTileLeft = ((i % nbTileRow) === 0) ? false : true;
+                    haveTileRight = (((i + 1) % nbTileRow) == 0) ? false : true;
+                    aPositFloor[i] = {i: i, x: parseInt(parseFloat(x + (nbElemRow * tileWidth))), y: parseInt(y), destroy: 0, haveTileLeft: haveTileLeft, haveTileRight: haveTileRight};
 
                     nbElemRow++;
                     if (nbElemRow >= nbTileRow) {
@@ -156,8 +169,44 @@
                     }
 
                 }
-                aPositSuffle = aPosit;
-                aPositSuffle = Phaser.Utils.shuffle(aPositSuffle);
+                /**
+                 * Floor
+                 */
+                aPosit[floor] = aPositFloor;
+                aPositSuffle[floor] = Phaser.Utils.shuffle(aPositFloor);
+                floorNbTile = nbTileRow;
+                floor++;
+                for (var z = 0; z < (nbTileToMiddle - 1); z++) {
+
+                    nbElemRow = 0;
+                    floorNbTile = Math.ceil(floorNbTile - ((floorNbTile / 3) * floor));
+                    aPositFloor = Array();
+                    TileByFloor = TileByFloor / 3;
+                    var indBcl = floorNbTile;
+                    if (indBcl > 2) {
+                        indBcl = indBcl * 2;
+                    }
+
+                    x = ((middle_left - (nbTileToMiddle * tileWidth)) + (tileWidth * floor)) + (floor * 8);
+                    y = ((middle_top - (nbTileToMiddle * tileHeight)) + (tileHeight * floor)) - (floor * 8);
+
+                    for (var i = 0; i < (indBcl * 2); i++) {
+
+                        haveTileLeft = ((i % floorNbTile) === 0) ? false : true;
+                        haveTileRight = (((i + 1) % floorNbTile) == 0) ? false : true;
+                        aPositFloor.push({i: i, x: parseInt(parseFloat(x + (nbElemRow * tileWidth))), y: parseInt(y), destroy: 0, haveTileLeft: haveTileLeft, haveTileRight: haveTileRight});
+                        nbElemRow++;
+                        if (nbElemRow >= floorNbTile) {
+                            nbElemRow = 0;
+                            y += parseFloat(tileHeight);
+                        }
+                    }
+
+                    aPosit[floor] = aPositFloor;
+                    aPositSuffle[floor] = Phaser.Utils.shuffle(aPositFloor);
+                    floor++;
+
+                }
 
             }
         });
