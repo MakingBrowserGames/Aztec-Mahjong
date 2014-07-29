@@ -209,13 +209,11 @@
             }
 
             function matching(tile) {
-
                 if (canSelect(tile)) {
 
                     tile.frame += nbTile;
                     if (lastTile != null) {
-
-                        if ((lastTile.frame == tile.frame) && (lastTile.id != tile.id)) {
+                        if ((lastTile.frame == tile.frame) && (lastTile.z != tile.z)) {
                             lastTile.destroy();
                             tile.destroy();
                             aPosit[tile.floor][tile.posit].destroy = 1;
