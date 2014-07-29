@@ -25,6 +25,7 @@
         var nbTile = 36;
         var tileWidth = 64;
         var tileHeight = 88;
+        var tilesList = new Array();
         var playableTile = 18;
         var nbTileRow = 6;
         var nbTileToMiddle = parseInt(nbTileRow / 2);
@@ -41,27 +42,28 @@
             }
 
             function create() {
+                generateTileList();
 
                 tilesGroup = game.add.group();
                 var TileByFloor = playableTile;
+
                 for (var z = 0; z < parseInt(nbTileToMiddle); z++) {
                     if (z > 0) {
-
                         TileByFloor = Math.ceil(nbTileRow - ((nbTileRow / 3) * z));
                         if (TileByFloor > 2) {
-
                             TileByFloor = TileByFloor * 2;
                         }
                     }
                     j = 0;
                     for (var i = 0; i < TileByFloor; i++) {
-                        var frame = parseInt(Math.random() * nbTile);
+                        var frame = parseInt(tilesList[j].frame);
                         var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
                         tile.floor = z;
                         tile.frame = frame;
                         tile.id = j;
                         tile.posit = aPositSuffle[z][j].i;
                         j++;
+                        var frame = parseInt(tilesList[j].frame);
                         var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
                         tile.floor = z;
                         tile.frame = frame;
@@ -70,6 +72,7 @@
                         j++;
                     }
                 }
+
                 tilesGroup.setAll('inputEnabled', true);
                 tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
             }
@@ -82,61 +85,22 @@
 
             }
 
+            function generateTileList() {
+                var nbTotlTile = 0;
 
-            function matching(tile) {
-
-                if (canSelect(tile)) {
-
-                    tile.frame += nbTile;
-                    if (lastTile != null) {
-
-                        if ((lastTile.frame == tile.frame) && (lastTile.id != tile.id)) {
-                            lastTile.destroy();
-                            tile.destroy();
-                            aPosit[tile.floor][tile.posit].destroy = 1;
-                            aPosit[lastTile.floor][lastTile.posit].destroy = 1;
-                        }
-                        lastTile.frame -= nbTile;
-                        tile.frame -= nbTile;
-                        lastTile = null;
-                    } else {
-                        lastTile = tile;
-                    }
-                }
-            }
-
-            function canSelect(tile) {
-                floor = tile.floor;
-                posit = tile.id;
-                index = tile.posit;
-
-                leftTile = parseInt(index - 1);
-                rightTile = parseInt(index + 1);
-
-                haveTileLeft = false;
-                haveTileRight = false;
-
-                if (aPosit[floor][posit].haveTileLeft) {
-                    haveTileLeft = aPosit[floor][posit].haveTileLeft;
+                for (var i = 0; i < (nbTileRow / 2); i++) {
+                    nbTotlTile += (nbTileRow - (i * 2)) * (nbTileRow - (i * 2));
                 }
 
-                if (aPosit[floor][posit].haveTileRight) {
-                    haveTileRight = aPosit[floor][posit].haveTileRight;
+                nbTotlTile = nbTotlTile / 2;
+
+                for (var i = 0; i < nbTotlTile; i++) {
+                    var frame = parseInt(Math.random() * nbTile);
+                    var a = {"frame": frame};
+                    tilesList.push(a, a);
                 }
 
-
-                var bRet = true;
-                if (!haveTileLeft || !haveTileRight) {
-                    bRet = true;
-                } else {
-                    if ((aPosit[floor][leftTile].destroy === 1) || (aPosit[floor][rightTile].destroy === 1)) {
-                        bRet = true;
-                    } else {
-                        bRet = false;
-                    }
-                }
-
-                return bRet;
+                Phaser.Utils.shuffle(tilesList);
             }
 
             function shufflingTiles() {
@@ -209,6 +173,65 @@
                 }
 
             }
+
+            function canSelect(tile) {
+                floor = tile.floor;
+                posit = tile.id;
+                index = tile.posit;
+
+                leftTile = parseInt(index - 1);
+                rightTile = parseInt(index + 1);
+
+                haveTileLeft = false;
+                haveTileRight = false;
+
+                if (aPosit[floor][posit].haveTileLeft) {
+                    haveTileLeft = aPosit[floor][posit].haveTileLeft;
+                }
+
+                if (aPosit[floor][posit].haveTileRight) {
+                    haveTileRight = aPosit[floor][posit].haveTileRight;
+                }
+
+
+                var bRet = true;
+                if (!haveTileLeft || !haveTileRight) {
+                    bRet = true;
+                } else {
+                    if ((aPosit[floor][leftTile].destroy === 1) || (aPosit[floor][rightTile].destroy === 1)) {
+                        bRet = true;
+                    } else {
+                        bRet = false;
+                    }
+                }
+
+                return bRet;
+            }
+
+            function matching(tile) {
+
+                if (canSelect(tile)) {
+
+                    tile.frame += nbTile;
+                    if (lastTile != null) {
+
+                        if ((lastTile.frame == tile.frame) && (lastTile.id != tile.id)) {
+                            lastTile.destroy();
+                            tile.destroy();
+                            aPosit[tile.floor][tile.posit].destroy = 1;
+                            aPosit[lastTile.floor][lastTile.posit].destroy = 1;
+                        }
+                        lastTile.frame -= nbTile;
+                        tile.frame -= nbTile;
+                        lastTile = null;
+                    } else {
+                        lastTile = tile;
+                    }
+                }
+            }
+
+
+
         });
 
 
