@@ -34,18 +34,19 @@
         var nbTileToMiddle = parseInt(nbTileRow / 2);
         var tilesGroup;
         var aPosit = new Array();
-        var aPositSuffle = new Array();
         var lastTile = null;
         var nbMatch = 0;
         var game = new Phaser.Game(width, height, Phaser.CANVAS, 'phaser-example', {preload: preload, create: create, update: update, render: render});
+
         function preload() {
             game.load.spritesheet('tiles', 'assets/images/symbols.png', tileWidth, tileHeight, 72);
             game.load.image('btnUp', 'assets/images/reload.png')
             shufflingTiles();
+            generateTileList();
         }
 
         function create() {
-            generateTileList();
+
             tilesGroup = game.add.group();
             var TileByFloor = playableTile;
 
@@ -64,24 +65,25 @@
                 for (var i = 0; i < TileByFloor; i++) {
 
                     var frame = parseInt(tilesList[j].frame);
-                    var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
+                    var tile = tilesGroup.create(aPosit[z][j].x, aPosit[z][j].y, 'tiles');
                     tile.floor = z;
                     tile.frame = frame;
                     tile.id = j;
-                    tile.posit = aPositSuffle[z][j].i;
+                    tile.posit = aPosit[z][j].i;
                     j++;
-                    
+
                     var frame = parseInt(tilesList[j].frame);
-                    var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
+                    var tile = tilesGroup.create(aPosit[z][j].x, aPosit[z][j].y, 'tiles');
                     tile.floor = z;
                     tile.frame = frame;
                     tile.id = j;
-                    tile.posit = aPositSuffle[z][j].i;
+                    tile.posit = aPosit[z][j].i;
                     j++;
                 }
             }
-
-
+            shuffleTiles();
+            tilesGroup.setAll('inputEnabled', true);
+            tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
 
             btnUp = game.add.button(width - 150, 550, 'btnUp');
             btnUp.inputEnabled = true;
@@ -90,13 +92,6 @@
             gameInfosElmt = game.add.text(width - 150, 0, gameInfosTxt, gameInfosStyle);
             gameInfosElmt.anchor.x = 1;
             updateGameInfo();
-
-
-
-            tilesGroup.setAll('inputEnabled', true);
-            tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
-            tilesGroup.setAll('inputEnabled', true);
-            tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
         }
 
         function update() {
@@ -131,25 +126,7 @@
                 var a = {"frame": frame};
                 tilesList.push(a, a);
             }
-
-            //    Phaser.Utils.shuffle(tilesList);
-
         }
-
-        function countPairs() {
-            var aNbTile = new Array();
-            for (var i = 0; i < tilesList.length; i++) {
-                var frame = String("frame_" + parseInt(tilesList[i].frame));
-
-                if (typeof aNbTile[frame] == "undefined") {
-                    aNbTile[frame] = 1;
-                } else {
-                    aNbTile[frame] = aNbTile[frame] + 1;
-                }
-            }
-            console.log(aNbTile);
-        }
-
         function shufflingTiles() {
             var aPositFloor = Array();
             var middle_left = width / 2;
@@ -183,7 +160,6 @@
              * Floor
              */
             aPosit[floor] = aPositFloor;
-            aPositSuffle[floor] = Phaser.Utils.shuffle(aPositFloor);
             floorNbTile = nbTileRow;
             floor++;
             for (var z = 0; z < (nbTileToMiddle - 1); z++) {
@@ -211,10 +187,20 @@
                     }
                 }
                 aPosit[floor] = aPositFloor;
-                aPositSuffle[floor] = aPositFloor;
                 floor++;
             }
 
+        }
+
+        function shuffleTiles() {
+            var aOriginTile = new Array();
+            for (var i = 0; i < tilesGroup.children.length; i++) {
+                aOriginTile.push({frame: tilesGroup.children[i].frame});
+            }
+            Phaser.Utils.shuffle(aOriginTile);
+            for (var i = 0; i < tilesGroup.children.length; i++) {
+                tilesGroup.children[i].frame = aOriginTile[i].frame;
+            }
         }
 
         function canSelect(tile) {
@@ -278,17 +264,5 @@
             gameInfosElmt.setText(str);
         }
 
-        function shuffleTiles() {
-            var aOriginTile = new Array();
-
-            for (var i = 0; i < tilesGroup.children.length; i++) {
-                aOriginTile.push({frame: tilesGroup.children[i].frame});
-            }
-
-            for (var i = 0; i < tilesGroup.children.length; i++) {
-                tilesGroup.children[i].frame = aOriginTile[i].frame;
-            }
-
-        }
     </script>
 </html>
