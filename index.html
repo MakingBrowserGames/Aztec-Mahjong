@@ -25,213 +25,270 @@
         var nbTile = 36;
         var tileWidth = 64;
         var tileHeight = 88;
+        var gameInfosElmt;
+        var gameInfosTxt = "Nombre de paire trouvées: [%nb_match%] \n  Nombre de paire restante: [%nb_tofind%]";
+        var gameInfosStyle = {font: "30px Arial", fill: "#fff", align: "left"};
         var tilesList = new Array();
         var playableTile = 18;
         var nbTileRow = 6;
         var nbTileToMiddle = parseInt(nbTileRow / 2);
-
         var tilesGroup;
         var aPosit = new Array();
         var aPositSuffle = new Array();
         var lastTile = null;
-        $(function() {
-            var game = new Phaser.Game(width, height, Phaser.CANVAS, 'phaser-example', {preload: preload, create: create, update: update, render: render});
-            function preload() {
-                game.load.spritesheet('tiles', 'assets/images/symbols.png', tileWidth, tileHeight, 72);
-                shufflingTiles();
-            }
+        var nbMatch = 0;
+        var game = new Phaser.Game(width, height, Phaser.CANVAS, 'phaser-example', {preload: preload, create: create, update: update, render: render});
+        function preload() {
+            game.load.spritesheet('tiles', 'assets/images/symbols.png', tileWidth, tileHeight, 72);
+            game.load.image('btnUp', 'assets/images/reload.png')
+            shufflingTiles();
+        }
 
-            function create() {
-                generateTileList();
+        function create() {
+            generateTileList();
+            tilesGroup = game.add.group();
+            var TileByFloor = playableTile;
 
-                tilesGroup = game.add.group();
-                var TileByFloor = playableTile;
+            var alreadyFrame = new Array()
 
-                for (var z = 0; z < parseInt(nbTileToMiddle); z++) {
-                    if (z > 0) {
-                        TileByFloor = Math.ceil(nbTileRow - ((nbTileRow / 3) * z));
-                        if (TileByFloor > 2) {
-                            TileByFloor = TileByFloor * 2;
-                        }
-                    }
-                    j = 0;
-                    for (var i = 0; i < TileByFloor; i++) {
-                        var frame = parseInt(tilesList[j].frame);
-                        var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
-                        tile.floor = z;
-                        tile.frame = frame;
-                        tile.id = j;
-                        tile.posit = aPositSuffle[z][j].i;
-                        j++;
-                        var frame = parseInt(tilesList[j].frame);
-                        var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
-                        tile.floor = z;
-                        tile.frame = frame;
-                        tile.id = j;
-                        tile.posit = aPositSuffle[z][j].i;
-                        j++;
+            for (var z = 0; z < parseInt(nbTileToMiddle); z++) {
+                if (z > 0) {
+                    TileByFloor = Math.ceil(nbTileRow - ((nbTileRow / 3) * z));
+                    if (TileByFloor > 2) {
+                        TileByFloor = TileByFloor * 2;
                     }
                 }
+                j = 0;
 
-                tilesGroup.setAll('inputEnabled', true);
-                tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
-            }
 
-            function update() {
+                for (var i = 0; i < TileByFloor; i++) {
 
-            }
-
-            function render() {
-
-            }
-
-            function generateTileList() {
-                var nbTotlTile = 0;
-
-                for (var i = 0; i < (nbTileRow / 2); i++) {
-                    nbTotlTile += (nbTileRow - (i * 2)) * (nbTileRow - (i * 2));
+                    var frame = parseInt(tilesList[j].frame);
+                    var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
+                    tile.floor = z;
+                    tile.frame = frame;
+                    tile.id = j;
+                    tile.posit = aPositSuffle[z][j].i;
+                    j++;
+                    
+                    var frame = parseInt(tilesList[j].frame);
+                    var tile = tilesGroup.create(aPositSuffle[z][j].x, aPositSuffle[z][j].y, 'tiles');
+                    tile.floor = z;
+                    tile.frame = frame;
+                    tile.id = j;
+                    tile.posit = aPositSuffle[z][j].i;
+                    j++;
                 }
+            }
 
-                nbTotlTile = nbTotlTile / 2;
 
-                for (var i = 0; i < nbTotlTile; i++) {
+
+            btnUp = game.add.button(width - 150, 550, 'btnUp');
+            btnUp.inputEnabled = true;
+            btnUp.onInputDown.add(shuffleTiles);
+
+            gameInfosElmt = game.add.text(width - 150, 0, gameInfosTxt, gameInfosStyle);
+            gameInfosElmt.anchor.x = 1;
+            updateGameInfo();
+
+
+
+            tilesGroup.setAll('inputEnabled', true);
+            tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
+            tilesGroup.setAll('inputEnabled', true);
+            tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
+        }
+
+        function update() {
+
+        }
+
+        function render() {
+
+        }
+
+        function generateTileList() {
+            var nbTotlTile = 0;
+            for (var i = 0; i < (nbTileRow / 2); i++) {
+                nbTotlTile += (nbTileRow - (i * 2)) * (nbTileRow - (i * 2));
+            }
+            alreadyFrame = new Array();
+            nbTotlTile = nbTotlTile / 2;
+
+
+            for (var i = 0; i < nbTotlTile; i++) {
+
+                do {
+                    if (alreadyFrame.length >= nbTile) {
+                        alreadyFrame = new Array();
+                    }
                     var frame = parseInt(Math.random() * nbTile);
-                    var a = {"frame": frame};
-                    tilesList.push(a, a);
-                }
 
-                Phaser.Utils.shuffle(tilesList);
+                } while ($.inArray(frame, alreadyFrame) != -1);
+
+
+                alreadyFrame.push(frame);
+                var a = {"frame": frame};
+                tilesList.push(a, a);
             }
 
-            function shufflingTiles() {
-                var aPositFloor = Array();
-                var middle_left = width / 2;
-                var middle_top = height / 2;
-                var base_x = middle_left - (nbTileToMiddle * tileWidth);
-                var base_y = middle_top - (nbTileToMiddle * tileHeight);
-                var x = middle_left - (nbTileToMiddle * tileWidth);
-                var y = middle_top - (nbTileToMiddle * tileHeight);
-                var nbElemRow = 0;
-                var haveTileLeft;
-                var haveTileRight;
-                var TileByFloor = playableTile;
-                var floor = 0;
-                /**
-                 * Ground
-                 */
-                for (var i = 0; i < TileByFloor * 2; i++) {
+            //    Phaser.Utils.shuffle(tilesList);
+
+        }
+
+        function countPairs() {
+            var aNbTile = new Array();
+            for (var i = 0; i < tilesList.length; i++) {
+                var frame = String("frame_" + parseInt(tilesList[i].frame));
+
+                if (typeof aNbTile[frame] == "undefined") {
+                    aNbTile[frame] = 1;
+                } else {
+                    aNbTile[frame] = aNbTile[frame] + 1;
+                }
+            }
+            console.log(aNbTile);
+        }
+
+        function shufflingTiles() {
+            var aPositFloor = Array();
+            var middle_left = width / 2;
+            var middle_top = height / 2;
+            var base_x = middle_left - (nbTileToMiddle * tileWidth);
+            var base_y = middle_top - (nbTileToMiddle * tileHeight);
+            var x = middle_left - (nbTileToMiddle * tileWidth);
+            var y = middle_top - (nbTileToMiddle * tileHeight);
+            var nbElemRow = 0;
+            var haveTileLeft;
+            var haveTileRight;
+            var TileByFloor = playableTile;
+            var floor = 0;
+            /**
+             * Ground
+             */
+            for (var i = 0; i < TileByFloor * 2; i++) {
 
 
-                    haveTileLeft = ((i % nbTileRow) === 0) ? false : true;
-                    haveTileRight = (((i + 1) % nbTileRow) == 0) ? false : true;
-                    aPositFloor[i] = {i: i, x: parseInt(parseFloat(x + (nbElemRow * tileWidth))), y: parseInt(y), destroy: 0, haveTileLeft: haveTileLeft, haveTileRight: haveTileRight};
+                haveTileLeft = ((i % nbTileRow) === 0) ? false : true;
+                haveTileRight = (((i + 1) % nbTileRow) == 0) ? false : true;
+                aPositFloor[i] = {i: i, x: parseInt(parseFloat(x + (nbElemRow * tileWidth))), y: parseInt(y), destroy: 0, haveTileLeft: haveTileLeft, haveTileRight: haveTileRight};
+                nbElemRow++;
+                if (nbElemRow >= nbTileRow) {
+                    nbElemRow = 0;
+                    y += parseFloat(tileHeight);
+                }
 
+            }
+            /**
+             * Floor
+             */
+            aPosit[floor] = aPositFloor;
+            aPositSuffle[floor] = Phaser.Utils.shuffle(aPositFloor);
+            floorNbTile = nbTileRow;
+            floor++;
+            for (var z = 0; z < (nbTileToMiddle - 1); z++) {
+
+                nbElemRow = 0;
+                floorNbTile = Math.ceil(floorNbTile - ((floorNbTile / 3) * floor));
+                aPositFloor = Array();
+                TileByFloor = TileByFloor / 3;
+                var indBcl = floorNbTile;
+                if (indBcl > 2) {
+                    indBcl = indBcl * 2;
+                }
+
+                x = ((middle_left - (nbTileToMiddle * tileWidth)) + (tileWidth * floor)) + (floor * 8);
+                y = ((middle_top - (nbTileToMiddle * tileHeight)) + (tileHeight * floor)) - (floor * 8);
+                for (var i = 0; i < (indBcl * 2); i++) {
+
+                    haveTileLeft = ((i % floorNbTile) === 0) ? false : true;
+                    haveTileRight = (((i + 1) % floorNbTile) == 0) ? false : true;
+                    aPositFloor.push({i: i, x: parseInt(parseFloat(x + (nbElemRow * tileWidth))), y: parseInt(y), destroy: 0, haveTileLeft: haveTileLeft, haveTileRight: haveTileRight});
                     nbElemRow++;
-                    if (nbElemRow >= nbTileRow) {
+                    if (nbElemRow >= floorNbTile) {
                         nbElemRow = 0;
                         y += parseFloat(tileHeight);
                     }
-
                 }
-                /**
-                 * Floor
-                 */
                 aPosit[floor] = aPositFloor;
-                aPositSuffle[floor] = Phaser.Utils.shuffle(aPositFloor);
-                floorNbTile = nbTileRow;
+                aPositSuffle[floor] = aPositFloor;
                 floor++;
-                for (var z = 0; z < (nbTileToMiddle - 1); z++) {
-
-                    nbElemRow = 0;
-                    floorNbTile = Math.ceil(floorNbTile - ((floorNbTile / 3) * floor));
-                    aPositFloor = Array();
-                    TileByFloor = TileByFloor / 3;
-                    var indBcl = floorNbTile;
-                    if (indBcl > 2) {
-                        indBcl = indBcl * 2;
-                    }
-
-                    x = ((middle_left - (nbTileToMiddle * tileWidth)) + (tileWidth * floor)) + (floor * 8);
-                    y = ((middle_top - (nbTileToMiddle * tileHeight)) + (tileHeight * floor)) - (floor * 8);
-
-                    for (var i = 0; i < (indBcl * 2); i++) {
-
-                        haveTileLeft = ((i % floorNbTile) === 0) ? false : true;
-                        haveTileRight = (((i + 1) % floorNbTile) == 0) ? false : true;
-                        aPositFloor.push({i: i, x: parseInt(parseFloat(x + (nbElemRow * tileWidth))), y: parseInt(y), destroy: 0, haveTileLeft: haveTileLeft, haveTileRight: haveTileRight});
-                        nbElemRow++;
-                        if (nbElemRow >= floorNbTile) {
-                            nbElemRow = 0;
-                            y += parseFloat(tileHeight);
-                        }
-                    }
-
-                    aPosit[floor] = aPositFloor;
-                    aPositSuffle[floor] = Phaser.Utils.shuffle(aPositFloor);
-                    floor++;
-
-                }
-
             }
 
-            function canSelect(tile) {
-                floor = tile.floor;
-                posit = tile.id;
-                index = tile.posit;
+        }
 
-                leftTile = parseInt(index - 1);
-                rightTile = parseInt(index + 1);
+        function canSelect(tile) {
+            floor = tile.floor;
+            posit = tile.id;
+            index = tile.posit;
+            leftTile = parseInt(index - 1);
+            rightTile = parseInt(index + 1);
+            haveTileLeft = false;
+            haveTileRight = false;
+            if (aPosit[floor][posit].haveTileLeft) {
+                haveTileLeft = aPosit[floor][posit].haveTileLeft;
+            }
 
-                haveTileLeft = false;
-                haveTileRight = false;
-
-                if (aPosit[floor][posit].haveTileLeft) {
-                    haveTileLeft = aPosit[floor][posit].haveTileLeft;
-                }
-
-                if (aPosit[floor][posit].haveTileRight) {
-                    haveTileRight = aPosit[floor][posit].haveTileRight;
-                }
+            if (aPosit[floor][posit].haveTileRight) {
+                haveTileRight = aPosit[floor][posit].haveTileRight;
+            }
 
 
-                var bRet = true;
-                if (!haveTileLeft || !haveTileRight) {
+            var bRet = true;
+            if (!haveTileLeft || !haveTileRight) {
+                bRet = true;
+            } else {
+                if ((aPosit[floor][leftTile].destroy === 1) || (aPosit[floor][rightTile].destroy === 1)) {
                     bRet = true;
                 } else {
-                    if ((aPosit[floor][leftTile].destroy === 1) || (aPosit[floor][rightTile].destroy === 1)) {
-                        bRet = true;
-                    } else {
-                        bRet = false;
-                    }
-                }
-
-                return bRet;
-            }
-
-            function matching(tile) {
-                if (canSelect(tile)) {
-
-                    tile.frame += nbTile;
-                    if (lastTile != null) {
-                        if ((lastTile.frame == tile.frame) && (lastTile.z != tile.z)) {
-                            lastTile.destroy();
-                            tile.destroy();
-                            aPosit[tile.floor][tile.posit].destroy = 1;
-                            aPosit[lastTile.floor][lastTile.posit].destroy = 1;
-                        }
-                        lastTile.frame -= nbTile;
-                        tile.frame -= nbTile;
-                        lastTile = null;
-                    } else {
-                        lastTile = tile;
-                    }
+                    bRet = false;
                 }
             }
 
+            return bRet;
+        }
+
+        function matching(tile) {
+            if (canSelect(tile)) {
+
+                tile.frame += nbTile;
+                if (lastTile != null) {
+                    if ((lastTile.frame == tile.frame) && (lastTile.z != tile.z)) {
+                        lastTile.destroy();
+                        tile.destroy();
+                        aPosit[tile.floor][tile.posit].destroy = 1;
+                        aPosit[lastTile.floor][lastTile.posit].destroy = 1;
+                        nbMatch++;
+                        updateGameInfo();
+                    }
+                    lastTile.frame -= nbTile;
+                    tile.frame -= nbTile;
+                    lastTile = null;
+                } else {
+                    lastTile = tile;
+                }
+            }
+        }
 
 
-        });
+        function updateGameInfo() {
+            str = gameInfosTxt;
+            str = str.replace('[%nb_match%]', nbMatch);
+            str = str.replace('[%nb_tofind%]', (tilesGroup.children.length / 2));
+            gameInfosElmt.setText(str);
+        }
 
+        function shuffleTiles() {
+            var aOriginTile = new Array();
 
+            for (var i = 0; i < tilesGroup.children.length; i++) {
+                aOriginTile.push({frame: tilesGroup.children[i].frame});
+            }
+
+            for (var i = 0; i < tilesGroup.children.length; i++) {
+                tilesGroup.children[i].frame = aOriginTile[i].frame;
+            }
+
+        }
     </script>
 </html>
