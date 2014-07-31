@@ -22,7 +22,7 @@
     <script type="text/javascript">
         var width = $(window).width();
         var height = $(window).height();
-        var nbTile = 36;
+        var nbTile = 20;
         var tileWidth = 64;
         var tileHeight = 88;
         var gameInfosElmt;
@@ -39,7 +39,7 @@
         var game = new Phaser.Game(width, height, Phaser.CANVAS, 'phaser-example', {preload: preload, create: create, update: update, render: render});
 
         function preload() {
-            game.load.spritesheet('tiles', 'assets/images/symbols.png', tileWidth, tileHeight, 72);
+            game.load.spritesheet('tiles', 'assets/images/aztec.jpg', tileWidth, tileHeight, 40);
             game.load.image('btnUp', 'assets/images/reload.png')
             shufflingTiles();
             generateTileList();
