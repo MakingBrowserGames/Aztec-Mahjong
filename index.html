@@ -17,14 +17,15 @@
 
     </body>
     <script type="text/javascript">
+
         var width = $(window).width();
         var height = $(window).height();
         var nbTile = 20;
         var tileWidth = 64;
         var tileHeight = 88;
         var gameInfosElmt;
-        var gameInfosTxt = "Nombre de paire trouvées: [%nb_match%] \n  Nombre de paire restante: [%nb_tofind%]";
-        var gameInfosStyle = {font: "30px Arial", fill: "#000", align: "left"};
+        var gameInfosTxt = "Tuiles : [%nb_match%] / [%nb_tofind%]";
+        var gameInfosStyle = {font: "30px Arial", fill: "#9e6856", align: "left"};
         var tilesList = new Array();
         var playableTile = 18;
         var nbTileRow = 6;
@@ -33,30 +34,38 @@
         var aPosit = new Array();
         var lastTile = null;
         var nbMatch = 0;
-        var game = new Phaser.Game(width, height, Phaser.CANVAS, 'phaser-example', {preload: preload, create: create, update: update, render: render});
-
+        var timerTxt;
+        var start = false;
+        var game = new Phaser.Game(width, height, Phaser.AUTO, 'phaser-example', {preload: preload, create: create, update: update, render: render});
+        var mill = 0;
         function preload() {
+
+            game.stage.scale.pageAlignHorizontally = true;
+            game.stage.scale.pageAlignVeritcally = true;
+            game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+
             game.load.image("background", "assets/images/bg.png");
             game.load.image("logo", "assets/images/logo.png");
-            game.load.spritesheet('tiles', 'assets/images/aztec.jpg', tileWidth, tileHeight, 40);
-            game.load.image('btnUp', 'assets/images/reload.png')
+            game.load.spritesheet('tiles', 'assets/images/aztec.png', tileWidth, tileHeight, 40);
+            game.load.spritesheet('btnReload', 'assets/images/reload.png', 88, 64, 3);
+            game.load.spritesheet('btnStart', 'assets/images/start.png', 88, 64, 3);
             shufflingTiles();
             generateTileList();
         }
 
         function create() {
+
             /*
              * Background
              */
             game.add.tileSprite(0, 0, width, height, 'background');
             var centerLogo = (width - 796) / 2;
-            game.add.tileSprite(centerLogo, 10, 796, 99, 'logo');
+            var logo = game.add.tileSprite(centerLogo, 10, 796, 99, 'logo');
             /*
              * Mahjohong
              */
             tilesGroup = game.add.group();
             var TileByFloor = playableTile;
-
             var alreadyFrame = new Array()
 
             for (var z = 0; z < parseInt(nbTileToMiddle); z++) {
@@ -67,8 +76,6 @@
                     }
                 }
                 j = 0;
-
-
                 for (var i = 0; i < TileByFloor; i++) {
 
                     var frame = parseInt(tilesList[j].frame);
@@ -78,7 +85,6 @@
                     tile.id = j;
                     tile.posit = aPosit[z][j].i;
                     j++;
-
                     var frame = parseInt(tilesList[j].frame);
                     var tile = tilesGroup.create(aPosit[z][j].x, aPosit[z][j].y, 'tiles');
                     tile.floor = z;
@@ -88,25 +94,48 @@
                     j++;
                 }
             }
-            shuffleTiles();
-            tilesGroup.setAll('inputEnabled', true);
-            tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
 
-            btnUp = game.add.button(width - 150, 550, 'btnUp');
-            btnUp.inputEnabled = true;
-            btnUp.onInputDown.add(shuffleTiles);
+            /**
+             * Env elmt
+             */
+            btnStart = game.add.sprite((width / 2) + 250, 280, 'btnStart', 0);
+            btnStart.inputEnabled = true;
+            btnStart.events.onInputOver.add(btnRollOver, this);
+            btnStart.events.onInputOut.add(btnRollOver, this);
+            btnStart.events.onInputDown.add(startGame, this);
+            btnReload = game.add.sprite((width / 2) + 250, 350, 'btnReload', 0);
+            btnReload.inputEnabled = true;
+            btnReload.events.onInputOver.add(btnRollOver, this);
+            btnReload.events.onInputOut.add(btnRollOver, this);
 
-            gameInfosElmt = game.add.text(width - 150, 0, gameInfosTxt, gameInfosStyle);
-            gameInfosElmt.anchor.x = 1;
+            gameInfosElmt = game.add.text(0, 0, gameInfosTxt, gameInfosStyle);
+            gameInfosElmt.y = (logo.height + 40);
             updateGameInfo();
+            /*
+             * timer
+             */
+            timestart = new Date();
+            timerTxt = game.add.text(0, 0, '00:00:00', gameInfosStyle);
+            timerTxt.x = parseFloat((parseFloat(width) - parseFloat(timerTxt.width)) / 2);
+            timerTxt.y = (gameInfosElmt.y + 40);
         }
 
         function update() {
-
+            if (start) {
+                updateTimer();
+            }
         }
 
         function render() {
+        }
 
+        function startGame() {
+            start = true;
+            shuffleTiles();
+            tilesGroup.setAll('inputEnabled', true);
+            tilesGroup.callAll('events.onInputDown.add', 'events.onInputDown', matching);
+            btnReload.input.enabled = true;
+            btnReload.events.onInputDown.add(shuffleTiles, this);
         }
 
         function generateTileList() {
@@ -116,8 +145,6 @@
             }
             alreadyFrame = new Array();
             nbTotlTile = nbTotlTile / 2;
-
-
             for (var i = 0; i < nbTotlTile; i++) {
 
                 do {
@@ -125,10 +152,7 @@
                         alreadyFrame = new Array();
                     }
                     var frame = parseInt(Math.random() * nbTile);
-
                 } while ($.inArray(frame, alreadyFrame) != -1);
-
-
                 alreadyFrame.push(frame);
                 var a = {"frame": frame};
                 tilesList.push(a, a);
@@ -226,7 +250,6 @@
                 haveTileRight = aPosit[floor][posit].haveTileRight;
             }
 
-
             var bRet = true;
             if (!haveTileLeft || !haveTileRight) {
                 bRet = true;
@@ -242,6 +265,7 @@
         }
 
         function matching(tile) {
+            
             if (canSelect(tile)) {
 
                 tile.frame += nbTile;
@@ -265,12 +289,41 @@
 
 
         function updateGameInfo() {
+            
             str = gameInfosTxt;
             str = str.replace('[%nb_match%]', nbMatch);
             str = str.replace('[%nb_tofind%]', (tilesGroup.children.length / 2));
             gameInfosElmt.setText(str);
-            gameInfosElmt.color = "#FFF";
+            gameInfosElmt.x = parseFloat((parseFloat(width) - parseFloat(gameInfosElmt.width)) / 2);
+            
         }
 
+        function updateTimer() {
+            
+            var timeend = new Date();
+            
+            var timedifference = timeend.getTime() - timestart.getTime();
+            timeend.setTime(timedifference);
+            
+            var minutes_passed = timeend.getMinutes();
+            minutes_passed = (minutes_passed < 10) ? "0" + minutes_passed : minutes_passed;
+            
+            var seconds_passed = timeend.getSeconds();
+            seconds_passed = (seconds_passed < 10) ? "0" + seconds_passed : seconds_passed;
+            
+            var milliseconds_passed = timeend.getMilliseconds();
+
+            timerTxt.setText(minutes_passed + ':' + seconds_passed + ':' + milliseconds_passed);
+        }
+
+        function btnRollOver(elmt) {
+            if (!elmt.on) {
+                elmt.on = true;
+                elmt.frame = 1;
+            } else {
+                elmt.on = false;
+                elmt.frame = 0;
+            }
+        }
     </script>
 </html>

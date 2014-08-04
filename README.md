@@ -8,7 +8,7 @@ Follow [https://github.com/photonstorm/phaser] for updates as Phaser evolves.
 
 ## Version
 
-0.0.2 - Aztec
+0.0.3 - Aztec
 
 ## Developer
 
