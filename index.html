@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
-    <!-- Mirrored from dl.dropboxusercontent.com/u/5308045/mahjong/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 17 Jul 2014 10:12:23 GMT -->
-    <!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <head>
-        <meta charset="UTF-8" />
-        <!--[if lt IE 9]><script type="text/javascript" src="bin/flashcanvas.js"></script><![endif]-->
+        <meta charset="UTF-8" />  
         <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
         <title>Mahjong solitaire</title>
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/phaser/2.0.6/phaser.min.js"></script>
@@ -27,7 +24,7 @@
         var tileHeight = 88;
         var gameInfosElmt;
         var gameInfosTxt = "Nombre de paire trouvées: [%nb_match%] \n  Nombre de paire restante: [%nb_tofind%]";
-        var gameInfosStyle = {font: "30px Arial", fill: "#fff", align: "left"};
+        var gameInfosStyle = {font: "30px Arial", fill: "#000", align: "left"};
         var tilesList = new Array();
         var playableTile = 18;
         var nbTileRow = 6;
@@ -39,6 +36,8 @@
         var game = new Phaser.Game(width, height, Phaser.CANVAS, 'phaser-example', {preload: preload, create: create, update: update, render: render});
 
         function preload() {
+            game.load.image("background", "assets/images/bg.png");
+            game.load.image("logo", "assets/images/logo.png");
             game.load.spritesheet('tiles', 'assets/images/aztec.jpg', tileWidth, tileHeight, 40);
             game.load.image('btnUp', 'assets/images/reload.png')
             shufflingTiles();
@@ -46,7 +45,15 @@
         }
 
         function create() {
-
+            /*
+             * Background
+             */
+            game.add.tileSprite(0, 0, width, height, 'background');
+            var centerLogo = (width - 796) / 2;
+            game.add.tileSprite(centerLogo, 10, 796, 99, 'logo');
+            /*
+             * Mahjohong
+             */
             tilesGroup = game.add.group();
             var TileByFloor = playableTile;
 
@@ -262,6 +269,7 @@
             str = str.replace('[%nb_match%]', nbMatch);
             str = str.replace('[%nb_tofind%]', (tilesGroup.children.length / 2));
             gameInfosElmt.setText(str);
+            gameInfosElmt.color = "#FFF";
         }
 
     </script>
