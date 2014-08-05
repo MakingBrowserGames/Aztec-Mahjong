@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8" />  
         <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
-        <title>Mahjong solitaire</title>
+        <title>Aztec - Mahjong</title>
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/phaser/2.0.6/phaser.min.js"></script>
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
         <style>
@@ -17,7 +17,6 @@
 
     </body>
     <script type="text/javascript">
-
         var width = $(window).width();
         var height = $(window).height();
         var nbTile = 20;
@@ -49,6 +48,9 @@
             game.load.spritesheet('tiles', 'assets/images/aztec.png', tileWidth, tileHeight, 40);
             game.load.spritesheet('btnReload', 'assets/images/reload.png', 88, 64, 3);
             game.load.spritesheet('btnStart', 'assets/images/start.png', 88, 64, 3);
+            game.load.bitmapFont('Neucha-Normal-400', 'assets/fonts/Neucha-Normal-400/font.png', 'assets/fonts/Neucha-Normal-400/font.fnt');
+
+
             shufflingTiles();
             generateTileList();
         }
@@ -118,6 +120,16 @@
             timerTxt = game.add.text(0, 0, '00:00:00', gameInfosStyle);
             timerTxt.x = parseFloat((parseFloat(width) - parseFloat(timerTxt.width)) / 2);
             timerTxt.y = (gameInfosElmt.y + 40);
+            /*
+             * Developer
+             */
+            var developer = game.add.bitmapText(0, (height - 50), 'Neucha-Normal-400', "@a-z-f", 35);
+            developer.x = parseFloat((parseFloat(width) - parseFloat(developer.width)) / 2);
+            developer.tint = "#000"
+            developer.inputEnabled = true;
+            developer.events.onInputDown.add(goToGithub, this);
+
+
         }
 
         function update() {
@@ -265,7 +277,7 @@
         }
 
         function matching(tile) {
-            
+
             if (canSelect(tile)) {
 
                 tile.frame += nbTile;
@@ -289,28 +301,28 @@
 
 
         function updateGameInfo() {
-            
+
             str = gameInfosTxt;
             str = str.replace('[%nb_match%]', nbMatch);
             str = str.replace('[%nb_tofind%]', (tilesGroup.children.length / 2));
             gameInfosElmt.setText(str);
             gameInfosElmt.x = parseFloat((parseFloat(width) - parseFloat(gameInfosElmt.width)) / 2);
-            
+
         }
 
         function updateTimer() {
-            
+
             var timeend = new Date();
-            
+
             var timedifference = timeend.getTime() - timestart.getTime();
             timeend.setTime(timedifference);
-            
+
             var minutes_passed = timeend.getMinutes();
             minutes_passed = (minutes_passed < 10) ? "0" + minutes_passed : minutes_passed;
-            
+
             var seconds_passed = timeend.getSeconds();
             seconds_passed = (seconds_passed < 10) ? "0" + seconds_passed : seconds_passed;
-            
+
             var milliseconds_passed = timeend.getMilliseconds();
 
             timerTxt.setText(minutes_passed + ':' + seconds_passed + ':' + milliseconds_passed);
@@ -324,6 +336,10 @@
                 elmt.on = false;
                 elmt.frame = 0;
             }
+        }
+
+        function goToGithub() {
+            top.location = "https://github.com/a-z-f/"
         }
     </script>
 </html>
